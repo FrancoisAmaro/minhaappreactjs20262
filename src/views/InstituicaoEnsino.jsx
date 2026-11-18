@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   Col,
@@ -12,10 +12,27 @@ import { FaPlus } from 'react-icons/fa';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
 
 const InstituicaoEnsino = () => {
-  let [instituicoesEnsino, setInstituicoesEnsino] = useState([
-    { nome: 'IFPB - Guarabira' },
-    { nome: 'IFPB - Cajazeiras' },
-  ]);
+  let [instituicoesEnsino, setInstituicoesEnsino] = useState([]);
+
+  const listarInstituicoesEnsino = () => {
+    console.log('Listando as IEs');
+
+    fetch('http://localhost:5000/instituicoesensino?_page=1&_per_page=10')
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setInstituicoesEnsino([...data]);
+      })
+      .catch((error) => {
+        console.log('Erro na requisição da API.');
+      });
+  };
+
+  useEffect(() => {
+    listarInstituicoesEnsino();
+  }, []);
 
   const buscarHandleClick = (event) => {};
 
@@ -24,6 +41,11 @@ const InstituicaoEnsino = () => {
     let instituicaoEnsino = { nome: 'IFPB - Campina Grande' };
     // instituicoesEnsino.push(instituicaoEnsino);
     setInstituicoesEnsino([...instituicoesEnsino, instituicaoEnsino]);
+  };
+
+  const removerHandleClick = () => {
+    console.log('Removendo');
+    fetch('http://localhost:5000/instituicoesensino/1', { method: 'DELETE' });
   };
   return (
     <>
@@ -48,6 +70,7 @@ const InstituicaoEnsino = () => {
         </Col>
       </Row>
 
+      <Button onClick={removerHandleClick}>Remover</Button>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -60,7 +83,7 @@ const InstituicaoEnsino = () => {
             return (
               <tr key={i}>
                 <td>{i + 1}</td>
-                <td>{instituicaoEnsino.nome}</td>
+                <td>{instituicaoEnsino.no_entidade}</td>
               </tr>
             );
           })}

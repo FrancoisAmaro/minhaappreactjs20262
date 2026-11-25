@@ -8,7 +8,7 @@ import {
   Table,
   Tooltip,
 } from 'react-bootstrap';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaTrash } from 'react-icons/fa';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
 
 const InstituicaoEnsino = () => {
@@ -17,7 +17,7 @@ const InstituicaoEnsino = () => {
   const listarInstituicoesEnsino = () => {
     console.log('Listando as IEs');
 
-    fetch('http://localhost:5000/instituicoesensino?_page=1&_per_page=10')
+    fetch('http://localhost:5000/instituicoesensino')
       .then((response) => {
         return response.json();
       })
@@ -43,10 +43,34 @@ const InstituicaoEnsino = () => {
     setInstituicoesEnsino([...instituicoesEnsino, instituicaoEnsino]);
   };
 
-  const removerHandleClick = () => {
-    console.log('Removendo');
-    fetch('http://localhost:5000/instituicoesensino/1', { method: 'DELETE' });
+  const removerHandleClick = (id) => {
+    if (!window.confirm('Deseja realmente remover esta Instituição de Ensino?')) {
+      return;
+    }
+
+    if (id === undefined) {
+      setInstituicoesEnsino(
+        instituicoesEnsino.filter((ie) => ie.id !== undefined)
+      );
+      return;
+    }
+
+    fetch(`http://localhost:5000/instituicoesensino/${id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Status ${response.status}`);
+        }
+        setInstituicoesEnsino((anteriores) =>
+          anteriores.filter((ie) => ie.id !== id)
+        );
+      })
+      .catch((error) => {
+        console.log('Erro ao remover a IE.', error);
+      });
   };
+
   return (
     <>
       <Row className="pt-4">
@@ -70,20 +94,34 @@ const InstituicaoEnsino = () => {
         </Col>
       </Row>
 
-      <Button onClick={removerHandleClick}>Remover</Button>
       <Table striped bordered hover>
         <thead>
           <tr>
             <th>#</th>
             <th>Nome</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
           {instituicoesEnsino.map((instituicaoEnsino, i) => {
             return (
-              <tr key={i}>
+              <tr key={instituicaoEnsino.id ?? `local-${i}`}>
                 <td>{i + 1}</td>
                 <td>{instituicaoEnsino.no_entidade}</td>
+                <td>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip>Remover</Tooltip>}
+                  >
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => removerHandleClick(instituicaoEnsino.id)}
+                    >
+                      <FaTrash />
+                    </Button>
+                  </OverlayTrigger>
+                </td>
               </tr>
             );
           })}
